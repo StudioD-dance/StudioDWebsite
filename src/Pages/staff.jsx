@@ -1,9 +1,11 @@
 // src/Pages/Staff.js
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
 export default function Staff() {
+  const navigate = useNavigate();
+  
   // Auth state
   const [session, setSession] = useState(null);
   const [mode, setMode] = useState('sign_in'); // 'sign_in' | 'sign_up'
@@ -25,16 +27,22 @@ export default function Staff() {
   useEffect(() => {
     let active = true;
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (active) setSession(session);
+      if (active) {
+        setSession(session);
+        if (session) navigate('/staffHome');
+      }
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+      if (session) {
+        setSession(session);
+        navigate('/staffHome');
+      }
     });
     return () => {
       active = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate]);
 
   // Fetch pages once authenticated
   useEffect(() => {
@@ -117,18 +125,21 @@ export default function Staff() {
 
   async function handleAuthSubmit(e) {
     e.preventDefault();
-    setAuthError('');
     setAuthLoading(true);
+    setAuthError('');
     try {
       if (mode === 'sign_in') {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) setAuthError(error.message);
+        else navigate('/staffHome');
       } else {
         const { error, data } = await supabase.auth.signUp({ email, password });
         if (error) setAuthError(error.message);
         else if (data?.user && !data?.session) {
           // Email confirmation required
           setAuthError('Check your email to confirm your account before signing in.');
+        } else {
+          navigate('/staffHome');
         }
       }
     } finally {
@@ -195,7 +206,7 @@ export default function Staff() {
                 onChange={e => setEmail(e.target.value)}
                 required
                 style={{
-                  width: '100%',
+                  width: '95%',
                   padding: '10px 12px',
                   borderRadius: 6,
                   border: '1px solid #ddd'
@@ -211,7 +222,7 @@ export default function Staff() {
                 onChange={e => setPassword(e.target.value)}
                 required
                 style={{
-                  width: '100%',
+                  width: '95%',
                   padding: '10px 12px',
                   borderRadius: 6,
                   border: '1px solid #ddd'
