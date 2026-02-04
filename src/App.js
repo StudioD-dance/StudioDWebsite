@@ -4,8 +4,9 @@ import {useNavigate, useLocation, BrowserRouter, Routes, Route } from 'react-rou
 import Menu from './Components/Menu';
 import Colors from './Constants/Colors'; 
 import ContactUs from './Components/contact';
-import Staff from "./Pages/staff";
+import  Staff  from './Pages/staff'
 import Home from "./Pages/Home";
+import { supabase } from './supabaseClient'
   
 
 function App() {
